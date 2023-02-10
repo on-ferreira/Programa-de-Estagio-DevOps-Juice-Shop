@@ -1,0 +1,43 @@
+# Source Documentation
+# https://marketplace.visualstudio.com/items?itemName=tingle-software.dependabot
+# https://sanderh.dev/Dependabot-Azure-DevOps/
+# https://www.youtube.com/watch?v=4ELai1FivK4
+# https://github.com/dependabot/dependabot-script
+
+# Display name when the pipeline is running
+name: 'Dependabot -- CI|CD'
+
+on:
+  push:
+    branches:
+      - master
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        npx dependabot-bot --token ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Run tests
+      run: npm test
+
+    - name: Deploy to production
+      if: success()
+      uses: actions/docker/cli@v1
+      with:
+        args: push my-image:latest   
+
+env:
+  CI: true
